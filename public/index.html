@@ -1,227 +1,375 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <!-- Metadata and Font Loading -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI ประเมินอาการเบื้องต้น</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Internal CSS Styles -->
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f9; color: #333; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 2rem; }
-        .container { width: 95%; max-width: 700px; }
-        .card { background-color: #fff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px M,h2 { color: #005a9c; text-align: center; }
-        h3.section-title { color: #005a9c; border-bottom: 2px solid #eef2f5; padding-bottom: 0.75rem; margin-top: 2rem; margin-bottom: 1.5rem; font-size: 1.2rem; }
-        .warning-box { background-color: #fffbe6; border: 1px solid #ffe58f; color: #d46b08; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; font-weight: 700; }
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --background-color: #f4f7f9;
+            --card-background: #fff;
+            --text-color: #343a40;
+            --heading-color: #004a7c;
+            --border-color: #dee2e6;
+            --risk-high: #dc3545; --risk-high-bg: #f8d7da; --risk-high-text: #721c24;
+            --risk-medium: #fd7e14; --risk-medium-bg: #fff3cd; --risk-medium-text: #856404;
+            --risk-low: #198754; --risk-low-bg: #d1e7dd; --risk-low-text: #0f5132;
+        }
+
+        /* --- Base and Layout Styles --- */
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container {
+            width: 100%;
+            max-width: 720px;
+        }
+        .card {
+            background-color: var(--card-background);
+            padding: 2rem 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        /* --- Typography and Section Styles --- */
+        h1, h2 { color: var(--heading-color); text-align: center; }
+        h1 { margin-bottom: 1rem; }
+        h2 { margin-bottom: 2rem; }
+        h3.section-title {
+            color: var(--heading-color);
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 0.75rem;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+        .warning-box {
+            background-color: #fffbe6;
+            border-left: 5px solid #ffc107;
+            color: #664d03;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* --- Form Element Styles --- */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; }
         .form-group { display: flex; flex-direction: column; }
         .full-width { grid-column: 1 / -1; }
-        label { margin-bottom: 0.5rem; font-weight: 700; color: #555; font-size: 0.9rem; }
+        label { margin-bottom: 0.5rem; font-weight: 700; color: #555; font-size: 0.95rem; }
         .checkbox-group-label { margin-bottom: 1rem; font-weight: 700; color: #555; grid-column: 1 / -1; }
-        input[type="text"], input[type="number"], textarea, button { width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
-        input:focus, textarea:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2); }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+            font-family: 'Sarabun', sans-serif;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        }
         textarea { resize: vertical; min-height: 100px; }
-        button { background-color: #007bff; color: white; border: none; font-weight: 700; cursor: pointer; transition: background-color 0.3s; margin-top: 2rem; padding: 14px; font-size: 1.1rem; }
-        button:hover { background-color: #0056b3; }
-        button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
-        #result-container { line-height: 1.7; }
-        .result-section h3 { color: #005a9c; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem; margin-top: 1.5rem; }
-        .result-section ul { list-style-type: '✓ '; padding-left: 1.5rem; }
-        .result-section li { margin-bottom: 0.5rem; }
-        .result-section .primary-analysis { background-color: #eef2f5; padding: 1rem; border-radius: 8px; margin-top: 0; font-style: italic; }
-        .bmi-card { padding: 1rem; border-radius: 8px; text-align: center; font-size: 1.2rem; font-weight: bold; }
-        .result-disclaimer { border: 2px solid #d93025; background-color: #fdecea; color: #a50e0e; padding: 1rem; margin-top: 2rem; border-radius: 8px; font-weight: 700; text-align: center; }
-        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        .main-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            width: 100%;
+            margin-top: 2rem;
+            padding: 14px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+        }
+        .main-button:hover { background-color: var(--primary-hover); }
+        .main-button:active { transform: scale(0.99); }
+        .main-button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
+
+        /* --- Result View Styles --- */
+        #result-wrapper, #loading-wrapper, #error-wrapper { padding: 2rem 2.5rem; }
+        .result-section h3 {
+            color: var(--heading-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        .result-section ul { list-style: none; padding-left: 0; }
+        .result-section .primary-analysis {
+            background-color: #e8f0fe;
+            color: var(--heading-color);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 0;
+            font-style: italic;
+            border-left: 5px solid var(--primary-color);
+        }
+        .bmi-card { padding: 1rem; border-radius: 8px; text-align: center; font-size: 1.2rem; font-weight: bold; background-color: #e9ecef; color: #495057; }
+        
+        .condition-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+        .risk-indicator { flex-shrink: 0; width: 14px; height: 14px; border-radius: 50%; }
+
+        .condition-item[data-risk="high"] { background-color: var(--risk-high-bg); color: var(--risk-high-text); border-left: 5px solid var(--risk-high); }
+        .condition-item[data-risk="high"] .risk-indicator { background-color: var(--risk-high); }
+        .condition-item[data-risk="medium"] { background-color: var(--risk-medium-bg); color: var(--risk-medium-text); border-left: 5px solid var(--risk-medium); }
+        .condition-item[data-risk="medium"] .risk-indicator { background-color: var(--risk-medium); }
+        .condition-item[data-risk="low"] { background-color: var(--risk-low-bg); color: var(--risk-low-text); border-left: 5px solid var(--risk-low); }
+        .condition-item[data-risk="low"] .risk-indicator { background-color: var(--risk-low); }
+        
+        .self-care-list li, .doctor-list li { padding-left: 30px; margin-bottom: 0.75rem; background-position: left center; background-repeat: no-repeat; }
+        .self-care-list li { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23198754" class="bi bi-check-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>'); }
+        .doctor-list li { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23dc3545" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>'); }
+        
+        .result-disclaimer { border: 2px solid var(--risk-high); background-color: var(--risk-high-bg); color: #721c24; padding: 1.5rem; margin-top: 2rem; border-radius: 8px; font-weight: 700; text-align: center; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 2rem auto; }
+
+        /* --- Checkbox Styles --- */
         .checkbox-container { display: flex; flex-wrap: wrap; gap: 10px 20px; }
-        .checkbox-container label { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 1rem;}
-        input[type="checkbox"] { width: auto; }
+        .checkbox-container label { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 1rem; }
+        input[type="checkbox"] { width: auto; transform: scale(1.2); }
+        
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .card {padding: 1.5rem;} }
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .card, #result-wrapper, #loading-wrapper, #error-wrapper { padding: 1.5rem; }
+            h1 { font-size: 1.8rem; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card" id="form-card">
-        <h1>AI ประเมินอาการเบื้องต้น</h1>
-        <div class="warning-box">
-            นี่ไม่ใช่การวินิจฉัยทางการแพทย์ โปรดใช้เพื่อเป็นข้อมูลประกอบและปรึกษาแพทย์หากมีอาการป่วย
+<main class="container">
+    <section id="app-card" class="card">
+        <!-- The content of this section will be replaced dynamically -->
+        
+        <!-- View #1: The Form (Initial View) -->
+        <div id="form-wrapper">
+            <h1>AI ประเมินอาการเบื้องต้น</h1>
+            <div class="warning-box">
+                นี่ไม่ใช่การวินิจฉัยทางการแพทย์ โปรดใช้เพื่อเป็นข้อมูลประกอบและปรึกษาแพทย์หากมีอาการป่วย
+            </div>
+            <form id="health-form">
+                <h3 class="section-title">ข้อมูลพื้นฐาน</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label for="name">ชื่อ</label><input type="text" id="name" placeholder="ระบุชื่อของคุณ" required></div>
+                    <div class="form-group"><label for="age">อายุ (ปี)</label><input type="number" id="age" placeholder="เช่น 35" required></div>
+                    <div class="form-group"><label for="weight">น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" placeholder="เช่น 65.5" required></div>
+                    <div class="form-group"><label for="height">ส่วนสูง (ซม.)</label><input type="number" id="height" placeholder="เช่น 170" required></div>
+                </div>
+                
+                <h3 class="section-title">รายละเอียดอาการ</h3>
+                <div class="form-grid">
+                    <div class="form-group full-width"><label for="symptoms">อธิบายอาการหลักของคุณให้ละเอียดที่สุด</label><textarea id="symptoms" placeholder="เช่น มีไข้ 38.5 องศา ปวดหัวแบบตุบๆ มีน้ำมูกใส และไอมีเสมหะสีเหลือง" required></textarea></div>
+                    <div class="form-group"><label for="duration">อาการนี้เป็นมานานแค่ไหนแล้ว</label><input type="text" id="duration" placeholder="เช่น 2 วัน, ประมาณ 5 ชั่วโมง"></div>
+                    <div class="form-group"><label for="severity">ให้คะแนนความรุนแรงของอาการ (0-10)</label><input type="number" id="severity" min="0" max="10" placeholder="0 = ไม่เลย, 10 = รุนแรงที่สุด"></div>
+                </div>
+
+                <h3 class="section-title">ข้อมูลสุขภาพเพิ่มเติม</h3>
+                <div class="form-grid">
+                    <div class="checkbox-group-label">คุณมีโรคประจำตัวเหล่านี้หรือไม่ (เลือกได้หลายข้อ)</div>
+                    <div class="form-group full-width checkbox-container">
+                        <label><input type="checkbox" name="conditions" value="เบาหวาน"> เบาหวาน</label>
+                        <label><input type="checkbox" name="conditions" value="ความดันโลหิตสูง"> ความดันฯ สูง</label>
+                        <label><input type="checkbox" name="conditions" value="โรคหัวใจ"> โรคหัวใจ</label>
+                        <label><input type="checkbox" name="conditions" value="โรคไต"> โรคไต</label>
+                        <label><input type="checkbox" name="conditions" value="หอบหืด/ภูมิแพ้"> หอบหืด/ภูมิแพ้</label>
+                        <label><input type="checkbox" name="conditions" value="ไม่มี"> ไม่มี</label>
+                    </div>
+                    <div class="form-group full-width"><label for="conditions_other">โรคประจำตัวอื่นๆ (ถ้ามี)</label><input type="text" id="conditions_other" placeholder="ระบุโรคอื่นๆ"></div>
+                    <div class="form-group"><label for="medications">ยา/อาหารเสริมที่ทานประจำ</label><input type="text" id="medications" placeholder="ระบุชื่อยา หรือ 'ไม่มี'"></div>
+                    <div class="form-group"><label for="allergies">ประวัติแพ้ยา/แพ้อาหาร</label><input type="text" id="allergies" placeholder="ระบุสิ่งที่แพ้ หรือ 'ไม่มี'"></div>
+                </div>
+                
+                <button type="submit" class="main-button">ส่งประเมินผล</button>
+            </form>
         </div>
-        <form id="health-form">
-            <h3 class="section-title">ข้อมูลพื้นฐาน</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="name">ชื่อ</label><input type="text" id="name" placeholder="ระบุชื่อของคุณ" required></div>
-                <div class="form-group"><label for="age">อายุ (ปี)</label><input type="number" id="age" placeholder="เช่น 35" required></div>
-                <div class="form-group"><label for="weight">น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" placeholder="เช่น 65.5" required></div>
-                <div class="form-group"><label for="height">ส่วนสูง (ซม.)</label><input type="number" id="height" placeholder="เช่น 170" required></div>
-            </div>
-            
-            <h3 class="section-title">รายละเอียดอาการ</h3>
-            <div class="form-grid">
-                 <div class="form-group full-width">
-                    <label for="symptoms">อธิบายอาการหลักของคุณให้ละเอียดที่สุด</label>
-                    <textarea id="symptoms" placeholder="เช่น มีไข้ ปวดหัวแบบตุบๆ มีน้ำมูกใส และไอมีเสมหะสีเหลือง" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="duration">อาการนี้เป็นมานานแค่ไหนแล้ว</label>
-                    <input type="text" id="duration" placeholder="เช่น 2 วัน, ประมาณ 5 ชั่วโมง">
-                </div>
-                <div class="form-group">
-                    <label for="severity">ให้คะแนนความรุนแรงของอาการ (0-10)</label>
-                    <input type="number" id="severity" min="0" max="10" placeholder="0 = ไม่รุนแรง, 10 = ที่สุด">
-                </div>
-            </div>
 
-            <h3 class="section-title">ข้อมูลสุขภาพเพิ่มเติม</h3>
-            <div class="form-grid">
-                <div class="checkbox-group-label">คุณมีโรคประจำตัวเหล่านี้หรือไม่ (เลือกได้หลายข้อ)</div>
-                <div class="form-group full-width checkbox-container">
-                    <label><input type="checkbox" name="conditions" value="เบาหวาน"> เบาหวาน</label>
-                    <label><input type="checkbox" name="conditions" value="ความดันโลหิตสูง"> ความดันโลหิตสูง</label>
-                    <label><input type="checkbox" name="conditions" value="โรคหัวใจ"> โรคหัวใจ</label>
-                    <label><input type="checkbox" name="conditions" value="โรคไต"> โรคไต</label>
-                    <label><input type="checkbox" name="conditions" value="หอบหืด/ภูมิแพ้"> หอบหืด/ภูมิแพ้</label>
-                    <label><input type="checkbox" name="conditions" value="ไม่มี"> ไม่มี</label>
-                </div>
-                 <div class="form-group full-width">
-                    <label for="conditions_other">โรคประจำตัวอื่นๆ (ถ้ามี)</label>
-                    <input type="text" id="conditions_other" placeholder="ระบุโรคอื่นๆ">
-                </div>
-                <div class="form-group">
-                    <label for="medications">ยา/อาหารเสริมที่ทานประจำ</label>
-                    <input type="text" id="medications" placeholder="ระบุชื่อยา หรือ 'ไม่มี'">
-                </div>
-                <div class="form-group">
-                    <label for="allergies">ประวัติแพ้ยา/แพ้อาหาร</label>
-                    <input type="text" id="allergies" placeholder="ระบุสิ่งที่แพ้ หรือ 'ไม่มี'">
-                </div>
-            </div>
-            
-            <button type="submit" id="submit-btn">ส่งประเมินผล</button>
-        </form>
-    </div>
+        <!-- View #2: Loading State -->
+        <div id="loading-wrapper" style="display: none;">
+            <div class="loader"></div>
+            <h2 style="font-size: 1.4rem;">AI กำลังวิเคราะห์ข้อมูลของคุณ...</h2>
+            <p style="text-align:center; color: #6c757d;">โปรดรอสักครู่ ระบบกำลังประมวลผลข้อมูลสุขภาพและอาการของคุณอย่างละเอียด</p>
+        </div>
+        
+        <!-- View #3: Result Display -->
+        <div id="result-wrapper" style="display: none;">
+            <!-- Content will be generated by JavaScript -->
+        </div>
 
-    <div class="card" id="result-container" style="display: none;">
-        <!-- ผลลัพธ์จาก AI จะแสดงที่นี่ -->
-    </div>
-</div>
+        <!-- View #4: Error Display -->
+        <div id="error-wrapper" style="display: none;">
+             <!-- Content will be generated by JavaScript -->
+        </div>
+    </section>
+</main>
 
 <script>
+    // --- Element References ---
+    const appCard = document.getElementById('app-card');
+    const formWrapper = document.getElementById('form-wrapper');
+    const loadingWrapper = document.getElementById('loading-wrapper');
+    const resultWrapper = document.getElementById('result-wrapper');
+    const errorWrapper = document.getElementById('error-wrapper');
     const healthForm = document.getElementById('health-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const resultContainer = document.getElementById('result-container');
-    const formCard = document.getElementById('form-card');
 
+    // --- Main Form Submission Logic ---
     healthForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // --- ส่วนที่ปรับปรุง: การรวบรวมข้อมูลจากฟอร์มที่ซับซ้อนขึ้น ---
+        const formData = gatherFormData();
+        showView('loading');
         
-        // 1. รวบรวมโรคประจำตัวจาก Checkboxes
-        const checkedConditions = Array.from(document.querySelectorAll('input[name="conditions"]:checked'))
-                                       .map(cb => cb.value);
-                                       
-        // 2. เอารายชื่อโรคจากช่อง 'อื่นๆ' มารวมด้วย (ถ้ามี)
-        const otherCondition = document.getElementById('conditions_other').value.trim();
-        if (otherCondition) {
-            checkedConditions.push(otherCondition);
-        }
-        
-        // 3. จัดการกรณีที่เลือก 'ไม่มี' แต่ดันกรอกอย่างอื่นด้วย
-        // ถ้า 'ไม่มี' อยู่ในรายการ ให้ใช้แค่ 'ไม่มี'
-        const finalConditions = checkedConditions.includes('ไม่มี') 
-                                ? 'ไม่มี' 
-                                : checkedConditions.join(', ') || 'ไม่ได้ระบุ';
-
-        // 4. สร้าง Object ที่จะส่งไป API
-        const formData = {
-            // ข้อมูลเดิม
-            name: document.getElementById('name').value,
-            age: document.getElementById('age').value,
-            weight: document.getElementById('weight').value,
-            height: document.getElementById('height').value,
-            symptoms: document.getElementById('symptoms').value,
-            // ข้อมูลใหม่
-            duration: document.getElementById('duration').value || 'ไม่ได้ระบุ',
-            severity: document.getElementById('severity').value || 'ไม่ได้ระบุ',
-            chronic_conditions: finalConditions, // ใช้ค่าที่ประมวลผลแล้ว
-            medications: document.getElementById('medications').value || 'ไม่มี',
-            allergies: document.getElementById('allergies').value || 'ไม่มี'
-        };
-        // -------------------------------------------------------------------
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'กำลังประมวลผล...';
-        resultContainer.innerHTML = '<div class="loader"></div>';
-        resultContainer.style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-
         try {
             const response = await fetch('/api/assess', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
-
+            
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์');
+                throw new Error(errorData.error || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุจากเซิร์ฟเวอร์');
             }
 
             const result = await response.json();
             displayResult(result);
-            // formCard.style.display = 'none'; // อาจจะซ่อนฟอร์มไปเลยก็ได้ถ้าต้องการ
-            healthForm.reset(); // ล้างค่าในฟอร์มเพื่อการกรอกครั้งต่อไป
+            showView('result');
 
         } catch (error) {
-            resultContainer.innerHTML = `<p style="color:red; text-align:center;"><strong>เกิดข้อผิดพลาด:</strong> ${error.message}</p>`;
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'ส่งประเมินผลอีกครั้ง';
+            displayError(error.message);
+            showView('error');
         }
     });
 
+    // --- View Management ---
+    function showView(viewName) {
+        formWrapper.style.display = viewName === 'form' ? 'block' : 'none';
+        loadingWrapper.style.display = viewName === 'loading' ? 'block' : 'none';
+        resultWrapper.style.display = viewName === 'result' ? 'block' : 'none';
+        errorWrapper.style.display = viewName === 'error' ? 'block' : 'none';
+    }
+
+    // --- Data Gathering ---
+    function gatherFormData() {
+        const checkedConditions = Array.from(document.querySelectorAll('input[name="conditions"]:checked')).map(cb => cb.value);
+        const otherCondition = document.getElementById('conditions_other').value.trim();
+        if (otherCondition) { checkedConditions.push(otherCondition); }
+        
+        let finalConditions = checkedConditions.join(', ') || 'ไม่ได้ระบุ';
+        if (checkedConditions.includes('ไม่มี') || checkedConditions.length === 0) {
+            finalConditions = 'ไม่มี';
+        }
+
+        return {
+            name: document.getElementById('name').value, age: document.getElementById('age').value, weight: document.getElementById('weight').value,
+            height: document.getElementById('height').value, symptoms: document.getElementById('symptoms').value,
+            duration: document.getElementById('duration').value || 'ไม่ได้ระบุ', severity: document.getElementById('severity').value || 'ไม่ได้ระบุ',
+            chronic_conditions: finalConditions, medications: document.getElementById('medications').value || 'ไม่มี', allergies: document.getElementById('allergies').value || 'ไม่มี'
+        };
+    }
+
+    // --- HTML Generation Helpers ---
+    function createConditionList(conditions) {
+        if (!conditions || conditions.length === 0) return '<li>AI ไม่พบภาวะที่เกี่ยวข้องอย่างชัดเจน</li>';
+        return conditions.map(item => `
+            <li class="condition-item" data-risk="${item.risk || 'low'}">
+                <span class="risk-indicator"></span>
+                <span class="condition-name">${item.condition}</span>
+            </li>
+        `).join('');
+    }
+
+    function createBulletedList(items, className = '') {
+         if (!items || items.length === 0) return '<li>ไม่มีคำแนะนำในส่วนนี้</li>';
+        return `<ul class="${className}">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+    }
+
+    // --- UI Rendering ---
     function displayResult(data) {
         const { userInfo, bmi, assessment } = data;
         
-        const createList = (items) => items.map(item => `<li>${item}</li>`).join('');
-
-        const resultHTML = `
+        resultWrapper.innerHTML = `
             <h2>ผลการประเมินเบื้องต้นสำหรับคุณ ${userInfo.name}</h2>
-            
             <div class="result-section">
                 <h3>ดัชนีมวลกาย (BMI)</h3>
-                <div class="bmi-card" style="background-color: #e8f0fe; color: #174ea6;">
-                    BMI ของคุณคือ ${bmi.bmi} <br> จัดอยู่ในเกณฑ์: ${bmi.category}
-                </div>
+                <div class="bmi-card">BMI ของคุณคือ ${bmi.bmi} (จัดอยู่ในเกณฑ์: ${bmi.category})</div>
             </div>
-
             <div class="result-section">
                 <h3>บทวิเคราะห์เบื้องต้นจาก AI</h3>
                 <p class="primary-analysis">${assessment.primary_analysis || 'ไม่สามารถสร้างบทวิเคราะห์ได้'}</p>
             </div>
-
             <div class="result-section">
-                <h3>ภาวะสุขภาพที่อาจเกี่ยวข้อง</h3>
-                <ul>${createList(assessment.possible_conditions || [])}</ul>
+                <h3>ภาวะสุขภาพที่อาจเกี่ยวข้อง (เรียงตามความน่าจะเป็น)</h3>
+                <ul>${createConditionList(assessment.possible_conditions)}</ul>
             </div>
-
             <div class="result-section">
                 <h3>คำแนะนำในการดูแลตัวเอง</h3>
-                 <ul>${createList(assessment.self_care_advice || [])}</ul>
+                ${createBulletedList(assessment.self_care_advice, 'self-care-list')}
             </div>
-            
             <div class="result-section">
                 <h3>สัญญาณอันตรายที่ควรรีบไปพบแพทย์</h3>
-                 <ul>${createList(assessment.when_to_see_doctor || [])}</ul>
+                ${createBulletedList(assessment.when_to_see_doctor, 'doctor-list')}
             </div>
-
-            <div class="result-disclaimer">
-                ${assessment.disclaimer}
-            </div>
+            <div class="result-disclaimer">${assessment.disclaimer}</div>
+            <button id="reset-btn" class="main-button">ประเมินใหม่อีกครั้ง</button>
         `;
-        resultContainer.innerHTML = resultHTML;
+        
+        attachResetListener();
+    }
+
+    function displayError(message) {
+        errorWrapper.innerHTML = `
+            <h2>เกิดข้อผิดพลาด</h2>
+            <p style="text-align:center; color: var(--risk-high-text); background-color: var(--risk-high-bg); padding: 1rem; border-radius: 8px;">${message}</p>
+            <button id="reset-btn" class="main-button">กลับไปหน้าแรก</button>
+        `;
+        attachResetListener();
+    }
+
+    // --- Event Listener Attachment ---
+    function attachResetListener() {
+        // Need to query selector on the parent, as the button is dynamically added
+        const resetButton = appCard.querySelector('#reset-btn');
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                healthForm.reset();
+                showView('form');
+            });
+        }
     }
 </script>
 
