@@ -3,172 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI วิเคราะห์ความเสี่ยงสุขภาพ 7 ระดับ</title>
+    <title>AI วิเคราะห์สุขภาพเบื้องต้น</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Color Palette from Chart */
-            --level1: #4dd0e1; --level2: #9ccc65; --level3: #4caf50; --level4: #fbc02d;
-            --level5: #f57c00; --level6: #d32f2f; --level7: #000000;
-            --primary-color: #007bff; --primary-hover: #0056b3; --background-color: #f8f9fa;
+            --primary-color: #007bff; --primary-hover: #0056b3; --background-color: #f4f7f9;
             --card-background: #fff; --text-color: #343a40; --heading-color: #004a7c;
+            /* Risk Colors */
+            --risk-high: #dc3545; --risk-medium: #fd7e14; --risk-low: #ffc107; --risk-info: #0dcaf0;
+            --risk-high-bg: #f8d7da; --risk-medium-bg: #fff3cd; --risk-low-bg: #fff9e6; --risk-info-bg: #cff4fc;
         }
         * { box-sizing: border-box; }
         body { font-family: 'Sarabun', sans-serif; background-color: var(--background-color); color: var(--text-color); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 2rem; line-height: 1.7; }
-        .container { width: 100%; max-width: 750px; }
-        .card { background-color: var(--card-background); padding: 2rem 2.5rem; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
-        h1, h2, h3 { color: var(--heading-color); }
-        h1 { text-align: center; margin-bottom: 0.5rem; }
-        .subtitle { text-align: center; color: #6c757d; margin-top: 0; margin-bottom: 2rem; font-size: 1.1rem; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 1.5rem; }
+        .container { width: 100%; max-width: 800px; }
+        .card { background-color: var(--card-background); padding: 2.5rem; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; }
+        h1, h2 { text-align: center; color: var(--heading-color); }
+        h3.section-title { font-size: 1.4rem; color: var(--heading-color); border-bottom: 3px solid #eef2f5; padding-bottom: 0.75rem; margin-top: 2rem; margin-bottom: 1.5rem; }
+        
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
         .form-group { display: flex; flex-direction: column; }
-        .full-width { grid-column: 1 / -1; }
-        label { margin-bottom: 0.5rem; font-weight: 700; font-size: 0.95rem; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: 1px solid #ced4da; }
-        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); }
-        .main-button { background: linear-gradient(45deg, var(--primary-color), #0056b3); color: white; border: none; font-weight: 700; cursor: pointer; transition: all 0.3s; width: 100%; margin-top: 2rem; padding: 16px; font-size: 1.2rem; border-radius: 12px; }
-        .main-button:hover { box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); transform: translateY(-2px); }
-
-        /* Result Styles */
-        .risk-summary-card { padding: 2rem; border-radius: 16px; color: white; text-align: center; margin-bottom: 2rem; }
-        .risk-level-name { font-size: 2.5rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin: 0; }
-        .result-section { margin-bottom: 2rem; }
-        .result-section h3 { border-bottom: 2px solid #e9ecef; padding-bottom: 0.5rem; }
-        .result-section ul { list-style: none; padding-left: 0; }
-        .result-section li { background-position: left top 5px; background-repeat: no-repeat; padding-left: 30px; margin-bottom: 0.75rem; }
-        .ai-summary { background-color: #e8f0fe; border-left: 5px solid #0056b3; padding: 1rem 1.5rem; border-radius: 8px; font-style: italic; }
-        .advice-list li { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23198754" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>'); }
-        .ai-recs-list li { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%230d6efd" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 16a6 6 0 0 0 6-6c0-1.633-.808-3.05-2.01-4.005a.5.5 0 0 0-.825.437c.39.87.635 1.85.635 2.868A4.5 4.5 0 0 1 8 14.5a.5.5 0 0 0 0 1M6.354 5.543A.5.5 0 0 0 6 6v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1H7V6a.5.5 0 0 0-.646-.457M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0M7 5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z"/></svg>');}
-        .final-note { border: 2px solid #f57c00; background-color: #fff8e1; color: #6d4c41; padding: 1.5rem; text-align: center; border-radius: 8px; font-weight: 500; }
-        .loader { border: 5px solid #e9ecef; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 3rem auto; }
-        .toggle-switch { display: flex; align-items: center; gap: 10px; font-weight:500; }
+        .full-span { grid-column: 1 / -1; }
+        label { margin-bottom: 0.5rem; font-weight: 700; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 14px; font-size: 1rem; border-radius: 8px; border: 1px solid #ced4da; font-family: 'Sarabun', sans-serif; }
+        textarea { resize: vertical; min-height: 120px; }
         .radio-group { display: flex; gap: 20px; align-items: center; }
-        .radio-group label { font-weight: normal; }
-        .radio-group input[type="radio"] { width: auto; transform: scale(1.2); }
+        
+        .main-button { background-color: var(--primary-color); color: white; border: none; font-weight: 700; cursor: pointer; transition: all 0.3s; width: 100%; margin-top: 2rem; padding: 16px; font-size: 1.2rem; border-radius: 12px; }
+        .main-button:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .main-button:disabled { background-color: #aaa; cursor: not-allowed; }
+
+        /* Results & States */
+        #result-wrapper, #loading-wrapper, #error-wrapper { display: none; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 3rem auto; }
+        
+        .result-header { text-align: center; margin-bottom: 2rem; }
+        .bmi-display { display: inline-block; background-color: #e9ecef; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; }
+        
+        .risk-card { display: flex; flex-direction: column; gap: 0.75rem; border: 1px solid #e0e0e0; padding: 1.25rem; margin-bottom: 1rem; border-radius: 12px; border-left-width: 8px; }
+        .risk-card[data-risk="high"] { border-left-color: var(--risk-high); background-color: var(--risk-high-bg);}
+        .risk-card[data-risk="medium"] { border-left-color: var(--risk-medium); background-color: var(--risk-medium-bg); }
+        .risk-card[data-risk="low"] { border-left-color: var(--risk-low); background-color: var(--risk-low-bg); }
+        .risk-card[data-risk="info"] { border-left-color: var(--risk-info); background-color: var(--risk-info-bg); }
+
+        .risk-card-header { display: flex; align-items: center; gap: 0.75rem; font-size: 1.2rem; font-weight: 700;}
+        .risk-label { text-transform: uppercase; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; color: white; }
+        .risk-label[data-risk="high"] { background-color: var(--risk-high); }
+        .risk-label[data-risk="medium"] { background-color: var(--risk-medium); }
+        .risk-label[data-risk="low"] { background-color: var(--risk-low); }
+        .risk-label[data-risk="info"] { background-color: var(--risk-info); color: #333}
+
+        .primary-analysis { background-color: #e8f0fe; padding: 1.5rem; border-radius: 12px; font-size: 1.1rem; }
+        ul.styled-list li { padding-left: 2em; text-indent: -2em; margin-bottom: 0.5rem; list-style: none;}
+        ul.styled-list li::before { content: '✓'; color: #28a745; margin-right: 0.75em; font-weight: bold; }
+        .red-flags li::before { content: '⚠️'; color: #dc3545; } /* Swapped to emoji for better visibility */
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 <main class="container">
-    <section id="app-card" class="card">
-        <!-- Views will be switched here by JS -->
+    <div id="app-card" class="card">
+        
+        <!-- View 1: The Form -->
         <div id="form-wrapper">
-            <h1>AI วิเคราะห์ความเสี่ยงสุขภาพ</h1>
-            <p class="subtitle">ตามเกณฑ์ 7 ระดับกรมควบคุมโรค</p>
+            <h1>AI วิเคราะห์สุขภาพเบื้องต้น</h1>
+            <h2 style="font-size: 1.1rem; color: #6c757d; text-align: center; margin-top: -1rem; margin-bottom: 2rem;">กรุณาให้ข้อมูลที่ละเอียดที่สุดเพื่อผลลัพธ์ที่แม่นยำ</h2>
             <form id="health-form">
+                <h3 class="section-title">ข้อมูลส่วนตัว</h3>
                 <div class="form-grid">
-                    <div class="form-group"><label for="name">ชื่อ</label><input type="text" id="name" placeholder="ชื่อของคุณ" required></div>
-                    <div class="form-group"><label for="age">อายุ (ปี)</label><input type="number" id="age" placeholder="เช่น 45"></div>
-                    <div class="form-group"><label for="weight">น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" placeholder="เช่น 70.5"></div>
-                    <div class="form-group"><label for="height">ส่วนสูง (ซม.)</label><input type="number" id="height" placeholder="เช่น 165"></div>
-<div class="form-group full-width">
-    <label>เพศ</label>
-    <div class="radio-group">
-        <label><input type="radio" name="sex" value="ชาย" checked> ชาย</label>
-        <label><input type="radio" name="sex" value="หญิง"> หญิง</label>
-    </div>
-</div>
-                    <div class="full-width"><h3>ผลตรวจสุขภาพ (ถ้ามี)</h3></div>
-                    <div class="form-group"><label for="blood_sugar">ระดับน้ำตาลในเลือด (mg/dL)</label><input type="number" id="blood_sugar" placeholder="เจาะปลายนิ้วล่าสุด"></div>
-                    <div class="form-group"><label for="hba1c">HbA1c (%)</label><input type="number" id="hba1c" step="0.1" placeholder="ถ้าทราบผลตรวจ"></div>
-                    <div class="form-group"><label for="bp_sys">ความดัน (ตัวบน/Systolic)</label><input type="number" id="bp_sys" placeholder="เช่น 145"></div>
-                    <div class="form-group"><label for="bp_dia">ความดัน (ตัวล่าง/Diastolic)</label><input type="number" id="bp_dia" placeholder="เช่น 95"></div>
-
-                    <div class="full-width"><h3>อาการที่น่ากังวล</h3></div>
-                    <div class="form-group full-width"><label for="symptoms">อธิบายอาการปัจจุบัน (ถ้ามี)</label><input type="text" id="symptoms" placeholder="เช่น ปวดหัวบ่อย, ตาพร่ามัว, ชาปลายมือ"></div>
-                    <div class="form-group full-width toggle-switch">
-                        <input type="checkbox" id="has_complications" style="width:auto; transform: scale(1.4);">
-                        <label for="has_complications">มีอาการโรคแทรกซ้อนรุนแรงหรือไม่? (เช่น เจ็บหน้าอก, อัมพฤกษ์, ไตวาย)</label>
+                    <div class="form-group"><label for="name">ชื่อ</label><input type="text" id="name" placeholder="ชื่อเล่น หรือชื่อจริง" required></div>
+                    <div class="form-group"><label for="age">อายุ (ปี)</label><input type="number" id="age" required></div>
+                    <div class="form-group"><label for="sex">เพศ</label>
+                        <div class="radio-group" style="padding-top: 14px;">
+                            <label><input type="radio" name="sex" value="ชาย" checked> ชาย</label>
+                            <label><input type="radio" name="sex" value="หญิง"> หญิง</label>
+                        </div>
                     </div>
                 </div>
-                <button type="submit" class="main-button">วิเคราะห์ผล</button>
+                <h3 class="section-title">ข้อมูลร่างกาย</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label for="weight">น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" required></div>
+                    <div class="form-group"><label for="height">ส่วนสูง (ซม.)</label><input type="number" id="height" required></div>
+                </div>
+                <h3 class="section-title">อาการปัจจุบัน</h3>
+                <div class="form-grid">
+                    <div class="form-group full-span">
+                        <label for="symptoms">อธิบายอาการที่เป็นอยู่ให้ละเอียดที่สุด</label>
+                        <textarea id="symptoms" rows="5" placeholder="เช่น: ปวดหัวบริเวณขมับซ้ายมา 2 วัน ปวดแบบตุบๆ เป็นๆ หายๆ มีอาการคลื่นไส้เล็กน้อย แต่ไม่มีไข้ และไม่ได้ทานยาอะไร" required></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="main-button">ส่งข้อมูลเพื่อวิเคราะห์</button>
             </form>
         </div>
 
-        <div id="loading-wrapper" style="display: none;">
-             <div class="loader"></div>
-             <h2 style="font-size: 1.5rem; text-align:center;">กำลังประมวลผลข้อมูล...</h2>
+        <!-- View 2: Loading State -->
+        <div id="loading-wrapper">
+            <div class="loader"></div>
+            <h2 style="font-size: 1.5rem; text-align:center;">AI กำลังวิเคราะห์ข้อมูลของคุณ...</h2>
+            <p style="text-align:center; color:#6c757d;">ขั้นตอนนี้อาจใช้เวลาสักครู่</p>
         </div>
 
-        <div id="result-wrapper" style="display: none;"></div>
-    </section>
+        <!-- View 3: Result Display -->
+        <div id="result-wrapper"></div>
+        
+        <!-- View 4: Error Display -->
+        <div id="error-wrapper"></div>
+    </div>
 </main>
 <script>
     const appCard = document.getElementById('app-card');
-    const healthForm = document.getElementById('health-form');
 
     function showView(viewId) {
-        appCard.querySelectorAll('#form-wrapper, #loading-wrapper, #result-wrapper').forEach(v => v.style.display = 'none');
+        ['form-wrapper', 'loading-wrapper', 'result-wrapper', 'error-wrapper'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
         document.getElementById(viewId).style.display = 'block';
     }
 
-    healthForm.addEventListener('submit', async (e) => {
+    document.getElementById('health-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         showView('loading-wrapper');
         const formData = {
             name: document.getElementById('name').value, age: document.getElementById('age').value,
+            sex: document.querySelector('input[name="sex"]:checked').value,
             weight: document.getElementById('weight').value, height: document.getElementById('height').value,
-            blood_sugar: document.getElementById('blood_sugar').value, hba1c: document.getElementById('hba1c').value,
-            bp_sys: document.getElementById('bp_sys').value, bp_dia: document.getElementById('bp_dia').value,
-            symptoms: document.getElementById('symptoms').value,
-            has_complications: document.getElementById('has_complications').checked
+            symptoms: document.getElementById('symptoms').value
         };
+
         try {
             const response = await fetch('/api/assess', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error); }
-            const result = await response.json();
-            displayResult(result);
+            const contentType = response.headers.get("content-type");
+
+            if (!contentType || contentType.indexOf("application/json") === -1) {
+                const errorText = await response.text();
+                throw new Error(`เซิร์ฟเวอร์เกิดปัญหา: ${errorText || 'ไม่สามารถอ่านข้อผิดพลาดได้'}`);
+            }
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.details || data.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+            }
+
+            displayResult(data);
             showView('result-wrapper');
         } catch (error) {
             displayError(error.message);
-            showView('result-wrapper');
+            showView('error-wrapper');
         }
     });
 
     function displayResult(data) {
-        const { userInfo, riskProfile, aiAnalysis } = data;
+        const { userInfo, bmi, analysis } = data;
         const resultContainer = document.getElementById('result-wrapper');
+        
         resultContainer.innerHTML = `
-            <div class="risk-summary-card" style="background: linear-gradient(45deg, ${riskProfile.color}, #333);">
-                <p style="margin:0; font-size:1.1rem;">คุณ ${userInfo.name} อยู่ในกลุ่ม</p>
-                <h2 class="risk-level-name" style="color:white;">${riskProfile.name}</h2>
-                <p style="margin:0;">(ระดับ ${riskProfile.level}/7)</p>
+            <div class="result-header">
+                <h2>ผลการวิเคราะห์เบื้องต้นสำหรับคุณ ${userInfo.name}</h2>
+                <p class="bmi-display">ดัชนีมวลกาย (BMI): ${bmi.value} (${bmi.category})</p>
             </div>
+
+            <h3 class="section-title">บทวิเคราะห์หลัก</h3>
+            <div class="primary-analysis">${analysis.primary_assessment}</div>
+
+            <h3 class="section-title">การประเมินความเสี่ยงของภาวะที่อาจเกี่ยวข้อง</h3>
+            <div>${createRiskList(analysis.risk_analysis)}</div>
             
-            <div class="result-section">
-                <h3>บทวิเคราะห์จาก AI</h3>
-                <p class="ai-summary">${aiAnalysis.overall_summary}</p>
-            </div>
+            <h3 class="section-title">คำแนะนำในการดูแลตัวเอง</h3>
+            <ul class="styled-list">${createBulletedList(analysis.self_care)}</ul>
 
-            <div class="result-section">
-                <h3>ข้อปฏิบัติหลักตามเกณฑ์</h3>
-                <ul class="advice-list">${riskProfile.advice.map(item => `<li>${item}</li>`).join('')}</ul>
-            </div>
+            <h3 class="section-title">คำแนะนำด้านอาหาร</h3>
+            <h4>อาหารที่แนะนำ</h4>
+            <ul class="styled-list">${createBulletedList(analysis.dietary_recommendations.foods_to_eat)}</ul>
+            <h4>อาหารที่ควรหลีกเลี่ยง</h4>
+            <ul class="styled-list" style="--bullet-color: #ffc107;">${createBulletedList(analysis.dietary_recommendations.foods_to_avoid)}</ul>
             
-            <div class="result-section">
-                <h3>คำแนะนำเพิ่มเติมจาก AI</h3>
-                <ul class="ai-recs-list">${aiAnalysis.additional_recommendations.map(item => `<li>${item}</li>`).join('')}</ul>
+            <h3 class="section-title">สัญญาณอันตรายที่ควรรีบพบแพทย์</h3>
+            <ul class="styled-list red-flags">${createBulletedList(analysis.red_flags)}</ul>
+            
+            <div style="background-color: #fffde7; padding: 1rem; text-align:center; border-radius: 8px; margin-top: 2rem; border:1px solid #ffecb3;">
+               <strong>ข้อควรระวัง:</strong> ${analysis.disclaimer}
             </div>
 
-            <div class="final-note">${aiAnalysis.important_note}</div>
+            <button onclick="resetApp()" class="main-button">ประเมินอีกครั้ง</button>
+        `;
+    }
 
-            <button id="reset-btn" class="main-button" style="margin-top: 2rem;">ประเมินอีกครั้ง</button>
-        `;
-        resultContainer.querySelector('#reset-btn').addEventListener('click', () => { healthForm.reset(); showView('form-wrapper'); });
+    function createRiskList(risks) {
+        if (!risks || risks.length === 0) return '<p>AI ไม่พบภาวะที่เกี่ยวข้องอย่างชัดเจน</p>';
+        const riskLevelMap = { high: 'เสี่ยงสูง', medium: 'เสี่ยงปานกลาง', low: 'เสี่ยงน้อย', info: 'ข้อมูล' };
+        return risks.map(risk => `
+            <div class="risk-card" data-risk="${risk.risk_level}">
+                <div class="risk-card-header">
+                    <span class="risk-label" data-risk="${risk.risk_level}">${riskLevelMap[risk.risk_level]}</span>
+                    <span>${risk.condition}</span>
+                </div>
+                <p style="margin:0; color: #555;"><strong>เหตุผล:</strong> ${risk.rationale}</p>
+            </div>
+        `).join('');
     }
-    
-    function displayError(message){
-        const resultContainer = document.getElementById('result-wrapper');
-        resultContainer.innerHTML = `
-             <h2 style="color:#d32f2f;">เกิดข้อผิดพลาด</h2>
-             <p style="text-align:center; background-color: #f8d7da; padding: 1rem; border-radius: 8px;">${message}</p>
-             <button id="reset-btn" class="main-button">กลับไปหน้าแรก</button>
-        `;
-        resultContainer.querySelector('#reset-btn').addEventListener('click', () => { healthForm.reset(); showView('form-wrapper'); });
+
+    function createBulletedList(items) {
+        if (!items || items.length === 0) return '<li>ไม่มีคำแนะนำในส่วนนี้</li>';
+        return items.map(item => `<li>${item}</li>`).join('');
     }
+
+    function displayError(message) {
+        const errorContainer = document.getElementById('error-wrapper');
+        errorContainer.innerHTML = `
+            <h2 style="color:var(--risk-high);">เกิดข้อผิดพลาด</h2>
+            <p style="text-align:center; background-color: var(--risk-high-bg); padding: 1rem; border-radius: 8px; color:#58151c;">${message}</p>
+            <button onclick="resetApp()" class="main-button">กลับสู่หน้าแรก</button>
+        `;
+    }
+
+    function resetApp() {
+        document.getElementById('health-form').reset();
+        showView('form-wrapper');
+    }
+    showView('form-wrapper'); // Initial view
 </script>
 </body>
-
 </html>
