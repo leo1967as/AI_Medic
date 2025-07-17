@@ -44,6 +44,9 @@
         .final-note { border: 2px solid #f57c00; background-color: #fff8e1; color: #6d4c41; padding: 1.5rem; text-align: center; border-radius: 8px; font-weight: 500; }
         .loader { border: 5px solid #e9ecef; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 3rem auto; }
         .toggle-switch { display: flex; align-items: center; gap: 10px; font-weight:500; }
+        .radio-group { display: flex; gap: 20px; align-items: center; }
+        .radio-group label { font-weight: normal; }
+        .radio-group input[type="radio"] { width: auto; transform: scale(1.2); }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -60,7 +63,13 @@
                     <div class="form-group"><label for="age">อายุ (ปี)</label><input type="number" id="age" placeholder="เช่น 45"></div>
                     <div class="form-group"><label for="weight">น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" placeholder="เช่น 70.5"></div>
                     <div class="form-group"><label for="height">ส่วนสูง (ซม.)</label><input type="number" id="height" placeholder="เช่น 165"></div>
-
+<div class="form-group full-width">
+    <label>เพศ</label>
+    <div class="radio-group">
+        <label><input type="radio" name="sex" value="ชาย" checked> ชาย</label>
+        <label><input type="radio" name="sex" value="หญิง"> หญิง</label>
+    </div>
+</div>
                     <div class="full-width"><h3>ผลตรวจสุขภาพ (ถ้ามี)</h3></div>
                     <div class="form-group"><label for="blood_sugar">ระดับน้ำตาลในเลือด (mg/dL)</label><input type="number" id="blood_sugar" placeholder="เจาะปลายนิ้วล่าสุด"></div>
                     <div class="form-group"><label for="hba1c">HbA1c (%)</label><input type="number" id="hba1c" step="0.1" placeholder="ถ้าทราบผลตรวจ"></div>
