@@ -88,18 +88,8 @@ async function getAiAssessment(userData, riskProfile) {
       2. ให้นำข้อมูล 'เพศ' มาเป็นปัจจัยสำคัญในการวิเคราะห์
       3. ต้องสร้าง JSON ตามโครงสร้างเป๊ะๆ และครบทุกฟิลด์
     `;
-
-    try {
-        const result = await model.generateContent(prompt);
-        return JSON.parse(result.response.text());
-    } catch (error) {
-        console.error("AI Response or JSON Parsing Error:", error.message);
-        return {
-            overall_summary: "AI ไม่สามารถประมวลผลคำแนะนำเพิ่มเติมได้ในขณะนี้เนื่องจากปัญหาทางเทคนิค",
-            additional_recommendations: ["โปรดยึดตามข้อปฏิบัติหลักตามเกณฑ์ที่แสดง และปรึกษาแพทย์เพื่อความปลอดภัย"],
-            important_note: "ย้ำเสมอว่านี่เป็นเพียงการประเมินเบื้องต้น และข้อมูลจากเครื่องวัดที่บ้านอาจมีความคลาดเคลื่อน ควรปรึกษาแพทย์เพื่อรับการวินิจฉัยและการรักษาที่ถูกต้อง"
-        };
-    }
+    const result = await model.generateContent(prompt);
+    return JSON.parse(result.response.text());
 }
 
 
@@ -142,11 +132,30 @@ app.post('/api/assess', async (req, res) => {
         });
 
         // 4. Get additional, contextual advice from AI
-        const aiAnalysis = await getAiAssessment(
-            { name, age, sex, bmiResult, symptoms, other_conditions },
-            riskProfile
-        );
+        // const aiAnalysis = await getAiAssessment(
+        //     { name, age, sex, bmiResult, symptoms, other_conditions },
+        //     riskProfile
+        // );
+    let aiAnalysis;
+        try {
+            console.log("กำลังเรียกใช้ AI เพื่อขอคำแนะนำเพิ่มเติม...");
+            aiAnalysis = await getAiAssessment(
+                { name, age, sex, bmiResult, symptoms, other_conditions },
+                riskProfile
+            );
+            console.log("✅ ได้รับคำแนะนำเพิ่มเติมจาก AI สำเร็จ");
 
+        } catch (aiError) {
+            // **การเปลี่ยนแปลงที่ 2:** จัดการข้อผิดพลาดจาก AI โดยเฉพาะ
+            console.error("❌ เกิดข้อผิดพลาดระหว่างการสื่อสารกับ Google AI:", aiError.message);
+
+            // ถ้าไม่มี AI Analysis เราจะสร้าง object สำรองขึ้นมา
+            aiAnalysis = {
+                overall_summary: "ไม่สามารถสร้างบทวิเคราะห์จาก AI ได้เนื่องจากปัญหาการเชื่อมต่อ",
+                additional_recommendations: ["โปรดยึดตามข้อปฏิบัติหลักตามเกณฑ์ที่แสดง และปรึกษาแพทย์เพื่อความปลอดภัย"],
+                important_note: aiError.message // **ส่งข้อความ Error จริงๆ ไปแสดงผล!**
+            };
+        }
         // 5. Combine all results and send back to frontend
         res.json({
             userInfo: { name, age, sex }, // Include sex in user info
@@ -156,10 +165,22 @@ app.post('/api/assess', async (req, res) => {
         });
 
     } catch (error) {
+        // **การเปลี่ยนแปลงที่ 3:** Catch block นี้จะจัดการข้อผิดพลาดร้ายแรงอื่นๆ ที่ไม่ใช่จาก AI
         console.error("Unhandled Error in /api/assess:", error);
-        res.status(500).json({
-            error: "เกิดข้อผิดพลาดในการประมวลผลบนเซิร์ฟเวอร์",
-            details: error.message
+
+        // กำหนดข้อความ Error ที่จะส่งกลับไปให้ Frontend
+        let errorMessage = "เกิดข้อผิดพลาดไม่ทราบสาเหตุบนเซิร์ฟเวอร์";
+        let statusCode = 500;
+
+        // ตัวอย่างการวิเคราะห์ Error เพิ่มเติม
+        if (error.message.includes("GEMINI_API_KEY")) {
+            errorMessage = "การตั้งค่าเซิร์ฟเวอร์ไม่สมบูรณ์ (API Key Error)";
+            statusCode = 503; // Service Unavailable
+        }
+        
+        res.status(statusCode).json({
+            error: "เกิดข้อผิดพลาดในการประมวลผล",
+            details: errorMessage
         });
     }
 });
