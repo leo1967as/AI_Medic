@@ -164,6 +164,7 @@ app.post('/api/assess', async (req, res) => {
             aiAnalysis: aiAnalysis      // AI-based explanation
         });
 
+        
     } catch (error) {
         // **การเปลี่ยนแปลงที่ 3:** Catch block นี้จะจัดการข้อผิดพลาดร้ายแรงอื่นๆ ที่ไม่ใช่จาก AI
         console.error("Unhandled Error in /api/assess:", error);
