@@ -104,43 +104,28 @@
         document.getElementById(viewId).style.display = 'block';
     }
 
-    // --- โค้ดใหม่ที่ทนทานขึ้น ---
-healthForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = gatherFormData();
-    showView('loading');
-    
-    try {
-        const response = await fetch('/api/assess', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-
-        // ตรวจสอบว่าเซิร์ฟเวอร์ตอบกลับมาเป็น JSON หรือไม่
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            // ถ้าเป็น JSON, ทำงานตามปกติ
-            const data = await response.json();
-            if (!response.ok) {
-                // ถ้าเป็น JSON แต่มีสถานะ Error (ที่เราสร้างเอง)
-                throw new Error(data.details || data.error || 'เกิดข้อผิดพลาด');
-            }
-            displayResult(data);
-            showView('result');
-        } else {
-            // ถ้าไม่ใช่ JSON (เช่น "A server error occurred")
-            const errorText = await response.text();
-            throw new Error(`เซิร์ฟเวอร์มีปัญหาและตอบกลับมาว่า: "${errorText}"`);
+    healthForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        showView('loading-wrapper');
+        const formData = {
+            name: document.getElementById('name').value, age: document.getElementById('age').value,
+            weight: document.getElementById('weight').value, height: document.getElementById('height').value,
+            blood_sugar: document.getElementById('blood_sugar').value, hba1c: document.getElementById('hba1c').value,
+            bp_sys: document.getElementById('bp_sys').value, bp_dia: document.getElementById('bp_dia').value,
+            symptoms: document.getElementById('symptoms').value,
+            has_complications: document.getElementById('has_complications').checked
+        };
+        try {
+            const response = await fetch('/api/assess', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error); }
+            const result = await response.json();
+            displayResult(result);
+            showView('result-wrapper');
+        } catch (error) {
+            displayError(error.message);
+            showView('result-wrapper');
         }
-
-    } catch (error) {
-        // Catch block นี้จะจัดการ Error ได้ทุกรูปแบบแล้ว
-        displayError(error.message);
-        showView('error');
-    }
-});
+    });
 
     function displayResult(data) {
         const { userInfo, riskProfile, aiAnalysis } = data;
