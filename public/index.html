@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,128 +9,329 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f9; color: #333; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 2rem; }
-        .container { width: 95%; max-width: 700px; }
-        .card { background-color: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 2rem; }
-        h1, h2 { color: #005a9c; text-align: center; }
-        .warning-box { background-color: #fffbe6; border: 1px solid #ffe58f; color: #d46b08; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .form-group { display: flex; flex-direction: column; }
-        .full-width { grid-column: 1 / -1; }
-        label { margin-bottom: 0.5rem; font-weight: 700; color: #555; }
-        input, textarea, button { width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
-        input:focus, textarea:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2); }
-        textarea { resize: vertical; min-height: 120px; }
-        button { background-color: #007bff; color: white; border: none; font-weight: 700; cursor: pointer; transition: background-color 0.3s; margin-top: 1rem; }
-        button:hover { background-color: #0056b3; }
-        button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
-        #result-container { line-height: 1.7; }
-        .result-section h3 { color: #005a9c; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem; margin-top: 1.5rem; }
-        .result-section ul { list-style-type: '✓ '; padding-left: 1.5rem; }
-        .result-section li { margin-bottom: 0.5rem; }
-        .bmi-card { padding: 1rem; border-radius: 8px; text-align: center; font-size: 1.2rem; font-weight: bold; }
-        .result-disclaimer { border: 2px solid #d93025; background-color: #fdecea; color: #a50e0e; padding: 1rem; margin-top: 2rem; border-radius: 8px; font-weight: 700; }
-        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-    </style>
-</head>
-<body>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+        }
 
-<div class="container">
-    <div class="card" id="form-card">
-        <h1>AI ประเมินอาการเบื้องต้น</h1>
-        <div class="warning-box">
-            <strong>คำเตือน:</strong> นี่ไม่ใช่การวินิจฉัยทางการแพทย์ โปรดใช้เพื่อเป็นข้อมูลประกอบเบื้องต้นและปรึกษาแพทย์หากมีอาการป่วย
-        </div>
-        <form id="health-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="name">ชื่อ</label>
-                    <input type="text" id="name" placeholder="ระบุชื่อของคุณ" required>
-                </div>
-                <div class="form-group">
-                    <label for="age">อายุ (ปี)</label>
-                    <input type="number" id="age" placeholder="เช่น 35" required>
-                </div>
-                <div class="form-group">
-                    <label for="weight">น้ำหนัก (กิโลกรัม)</label>
-                    <input type="number" id="weight" step="0.1" placeholder="เช่น 65.5" required>
-                </div>
-                <div class="form-group">
-                    <label for="height">ส่วนสูง (เซนติเมตร)</label>
-                    <input type="number" id="height" placeholder="เช่น 170" required>
-                </div>
-                <div class="form-group full-width">
-                    <label for="symptoms">อธิบายอาการของคุณ</label>
-                    <textarea id="symptoms" placeholder="เช่น มีไข้สูง ปวดหัว ไอแห้งๆ มา 2 วันแล้ว" required></textarea>
-                </div>
-            </div>
-            <button type="submit" id="submit-btn">ส่งประเมิน</button>
-        </form>
-    </div>
+        .container {
+            width: 95%;
+            max-width: 700px;
+        }
 
-    <div class="card" id="result-container" style="display: none;">
-        <!-- ผลลัพธ์จะแสดงที่นี่ -->
-    </div>
-</div>
+        .card {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
 
-<script>
-    const healthForm = document.getElementById('health-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const resultContainer = document.getElementById('result-container');
-    const formCard = document.getElementById('form-card');
+        h1,
+        h2 {
+            color: #005a9c;
+            text-align: center;
+        }
 
-    healthForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = {
-            name: document.getElementById('name').value,
-            age: document.getElementById('age').value,
-            weight: document.getElementById('weight').value,
-            height: document.getElementById('height').value,
-            symptoms: document.getElementById('symptoms').value
-        };
+        .warning-box {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #d46b08;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
 
-        // แสดง loading และปิดปุ่ม
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'กำลังประมวลผล...';
-        resultContainer.innerHTML = '<div class="loader"></div>';
-        resultContainer.style.display = 'block';
-        window.scrollTo(0, document.body.scrollHeight);
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
 
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
 
-        try {
-            const response = await fetch('/api/assess', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+        .full-width {
+            grid-column: 1 / -1;
+        }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์');
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            color: #555;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        #result-container {
+            line-height: 1.7;
+        }
+
+        .result-section h3 {
+            color: #005a9c;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-section ul {
+            list-style-type: '✓ ';
+            padding-left: 1.5rem;
+        }
+
+        .result-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .bmi-card {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .result-disclaimer {
+            border: 2px solid #d93025;
+            background-color: #fdecea;
+            color: #a50e0e;
+            padding: 1rem;
+            margin-top: 2rem;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
             }
 
-            const result = await response.json();
-            displayResult(result);
-            formCard.style.display = 'none'; // ซ่อนฟอร์มเมื่อได้ผลลัพธ์
-
-        } catch (error) {
-            resultContainer.innerHTML = `<p style="color:red; text-align:center;"><strong>เกิดข้อผิดพลาด:</strong> ${error.message}</p>`;
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'ส่งประเมินอีกครั้ง';
+            100% {
+                transform: rotate(360deg);
+            }
         }
-    });
 
-    function displayResult(data) {
-        const { userInfo, bmi, assessment } = data;
-        
-        // ฟังก์ชันช่วยสร้าง List HTML
-        const createList = (items) => items.map(item => `<li>${item}</li>`).join('');
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
 
-        const resultHTML = `
+<body>
+
+    <div class="container">
+        <div class="card" id="form-card">
+            <h1>AI ประเมินอาการเบื้องต้น</h1>
+            <div class="warning-box">
+                <strong>คำเตือน:</strong> นี่ไม่ใช่การวินิจฉัยทางการแพทย์
+                โปรดใช้เพื่อเป็นข้อมูลประกอบเบื้องต้นและปรึกษาแพทย์หากมีอาการป่วย
+            </div>
+            <form id="health-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">ชื่อ</label>
+                        <input type="text" id="name" placeholder="ระบุชื่อของคุณ" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="age">อายุ (ปี)</label>
+                        <input type="number" id="age" placeholder="เช่น 35" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">น้ำหนัก (กิโลกรัม)</label>
+                        <input type="number" id="weight" step="0.1" placeholder="เช่น 65.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="height">ส่วนสูง (เซนติเมตร)</label>
+                        <input type="number" id="height" placeholder="เช่น 170" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="symptoms">อธิบายอาการของคุณ</label>
+                        <textarea id="symptoms" placeholder="เช่น มีไข้สูง ปวดหัว ไอแห้งๆ มา 2 วันแล้ว"
+                            required></textarea>
+                    </div>
+                    <!-- ตัวอย่างการเพิ่ม field ใน health-form ของ index.html -->
+                    <div class="card" id="form-card">
+                        <h1>AI ประเมินอาการเบื้องต้น</h1>
+                        <!-- ... Warning Box ... -->
+                        <form id="health-form">
+                            <div class="form-grid">
+                                <!-- ข้อมูลพื้นฐานเดิม -->
+                                <div class="form-group"><label for="name">ชื่อ</label><input type="text" id="name"
+                                        required></div>
+                                <div class="form-group"><label for="age">อายุ</label><input type="number" id="age"
+                                        required></div>
+                                <div class="form-group"><label for="weight">น้ำหนัก (kg)</label><input type="number"
+                                        id="weight" step="0.1" required></div>
+                                <div class="form-group"><label for="height">ส่วนสูง (cm)</label><input type="number"
+                                        id="height" required></div>
+
+                                <!-- ** ส่วนที่เพิ่มใหม่: เจาะลึกอาการ ** -->
+                                <div class="form-group full-width">
+                                    <label for="symptoms">อธิบายอาการหลักของคุณ</label>
+                                    <textarea id="symptoms" placeholder="เช่น มีไข้สูง ปวดหัว ไอแห้งๆ"
+                                        required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="duration">อาการเป็นมานานแค่ไหนแล้ว</label>
+                                    <input type="text" id="duration" placeholder="เช่น 2 วัน, 5 ชั่วโมง">
+                                </div>
+                                <div class="form-group">
+                                    <label for="severity">ความรุนแรงของอาการ (0-10)</label>
+                                    <input type="number" id="severity" min="0" max="10"
+                                        placeholder="0 = ไม่รุนแรง, 10 = รุนแรงที่สุด">
+                                </div>
+
+                                <!-- ** ส่วนที่เพิ่มใหม่: ข้อมูลสุขภาพ ** -->
+                                <div class="form-group full-width">
+                                    <label>คุณมีโรคประจำตัวเหล่านี้หรือไม่ (เลือกได้หลายข้อ)</label>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                                        <label><input type="checkbox" name="conditions" value="เบาหวาน"> เบาหวาน</label>
+                                        <label><input type="checkbox" name="conditions" value="ความดันโลหิตสูง">
+                                            ความดันโลหิตสูง</label>
+                                        <label><input type="checkbox" name="conditions" value="โรคหัวใจ">
+                                            โรคหัวใจ</label>
+                                        <label><input type="checkbox" name="conditions" value="หอบหืด"> หอบหืด</label>
+                                    </div>
+                                    <input type="text" id="conditions_other" placeholder="โรคประจำตัวอื่นๆ (ถ้ามี)">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="medications">ยา หรืออาหารเสริมที่ทานเป็นประจำ (ถ้ามี)</label>
+                                    <input type="text" id="medications" placeholder="ระบุชื่อยา หรือ 'ไม่มี'">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="allergies">ประวัติการแพ้ยา หรือแพ้อาหาร (ถ้ามี)</label>
+                                    <input type="text" id="allergies" placeholder="ระบุสิ่งที่แพ้ หรือ 'ไม่มี'">
+                                </div>
+                            </div>
+                            <button type="submit" id="submit-btn">ส่งประเมิน</button>
+                        </form>
+                    </div>
+
+
+                    <div class="card" id="result-container" style="display: none;">
+                        <!-- ผลลัพธ์จะแสดงที่นี่ -->
+                    </div>
+                </div>
+
+                <script>
+                    const healthForm = document.getElementById('health-form');
+                    const submitBtn = document.getElementById('submit-btn');
+                    const resultContainer = document.getElementById('result-container');
+                    const formCard = document.getElementById('form-card');
+
+                    healthForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+
+                        const formData = {
+                            name: document.getElementById('name').value,
+                            age: document.getElementById('age').value,
+                            weight: document.getElementById('weight').value,
+                            height: document.getElementById('height').value,
+                            symptoms: document.getElementById('symptoms').value
+                        };
+
+                        // แสดง loading และปิดปุ่ม
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'กำลังประมวลผล...';
+                        resultContainer.innerHTML = '<div class="loader"></div>';
+                        resultContainer.style.display = 'block';
+                        window.scrollTo(0, document.body.scrollHeight);
+
+
+                        try {
+                            const response = await fetch('/api/assess', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(formData)
+                            });
+
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์');
+                            }
+
+                            const result = await response.json();
+                            displayResult(result);
+                            formCard.style.display = 'none'; // ซ่อนฟอร์มเมื่อได้ผลลัพธ์
+
+                        } catch (error) {
+                            resultContainer.innerHTML = `<p style="color:red; text-align:center;"><strong>เกิดข้อผิดพลาด:</strong> ${error.message}</p>`;
+                        } finally {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'ส่งประเมินอีกครั้ง';
+                        }
+                    });
+
+                    function displayResult(data) {
+                        const { userInfo, bmi, assessment } = data;
+
+                        // ฟังก์ชันช่วยสร้าง List HTML
+                        const createList = (items) => items.map(item => `<li>${item}</li>`).join('');
+
+                        const resultHTML = `
             <h2>ผลการประเมินเบื้องต้นสำหรับคุณ ${userInfo.name}</h2>
             
             <div class="result-section">
@@ -158,9 +360,10 @@
                 ${assessment.disclaimer}
             </div>
         `;
-        resultContainer.innerHTML = resultHTML;
-    }
-</script>
+                        resultContainer.innerHTML = resultHTML;
+                    }
+                </script>
 
 </body>
+
 </html>
